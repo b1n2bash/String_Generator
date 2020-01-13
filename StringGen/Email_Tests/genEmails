@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Test Script that Randomly Generates "Emails"
+
+# Clear Emails Previously Used
+>emails.txt
+echo "Number of emails to Generate"
+read emailNum
+echo "Lenght of Names"
+read userLength
+
+# Variable to ensure you dont exhaust all 
+# possible email combinations (Infinite Loop)
+EXHAUST=0
+
+# Loop Variable
+x=1
+while [ $x -le $emailNum ] 
+do
+	
+	# Create a random string of length 10 consisting of all letters/numbers (Uppercase & Lowercase)
+	TEST=$(head /dev/random | tr -dc A-Za-z0-9 | head -c $userLength)
+	EMAILSTR=$TEST@gmail.com
+
+	ISUSED=$(grep $EMAILSTR usedEmails.txt)
+	# If the email generated is unique, add it to the list.
+	if [ -z "$ISUSED" ]; then
+		
+		# Create a list of active emails
+		echo $EMAILSTR >> emails.txt
+
+		# Add the new entries to the list of used Emails
+		echo $EMAILSTR >> usedEmails.txt	
+	
+	# If the email already exists in the list, dont add it to either text file
+	# and make it so the loop variable wont increment, that way
+        # the number of requested emails will always be uniquely generated
+	# until there are no possible combinations left.	
+	elif [ ! -z "$ISUSED" ]; then
+		x=$(( $x - 1))
+		EXHAUST=$(( $EXHAUST + 1))
+
+	fi	
+	x=$(( $x + 1 ))
+
+	# If there hasnt been a unique string in 100 tries, 
+	# Kill the program.
+	# This number might have to be larger when creating lists with
+	# a higher number of possible combinations.
+	if [ $EXHAUST -gt 100 ]; then
+		echo "Run out of Possible Combinations"
+		break
+	fi
+done
